@@ -13,3 +13,9 @@ Highly customizable, cross-platform, and blazingly fast terminal snake game.
 ## Building
 Requires nightly to build.
 
+Can be installed with:
+```sh
+rustup toolchain add nightly
+cargo +nightly install snekgame
+```
+
