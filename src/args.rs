@@ -102,7 +102,7 @@ pub fn into_theme(args: Cli) -> themes::FullTheme {
     themes::FullTheme {
         board: args.board_theme.into(),
         snake: args.snake_theme.into(),
-        food_types: args.food_theme.into(),
+        food: args.food_theme.into(),
         display_score: !args.hide_score,
     }
 }

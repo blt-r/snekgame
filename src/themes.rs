@@ -1,7 +1,7 @@
 // TODO: custom themes
 
 pub struct FullTheme {
-    pub food_types: FoodTheme,
+    pub food: FoodTheme,
     pub board: BoardTheme,
     pub snake: SnakeTheme,
     pub display_score: bool,
@@ -27,6 +27,7 @@ pub enum FoodBuiltin {
     Retro,
     Braille,
     Math,
+    Chess,
 }
 
 pub struct FoodTheme {
@@ -73,15 +74,22 @@ impl Into<FoodTheme> for FoodBuiltin {
                 colors: vec![C::Red],
             },
             FoodBuiltin::Braille => FoodTheme {
-                theme: cow_vec!["⢾⡷", "⢎⡱"],
+                theme: cow_vec!["⢾⡷", "⢎⡱", "⡱⢎", "⣏⣹"],
                 colors: vec![C::Blue, C::Cyan, C::Green, C::Magenta, C::Yellow, C::Red],
             },
             FoodBuiltin::Math => FoodTheme {
                 theme: cow_vec![
-                    "∫ ", "⇔ ", "∀ ", "∃ ", "∈ ", "∑ ", "∭ ", "∞ ", "∅ ", "⊆ ", "≥ ", "≈ ", "∆x",
-                    "∆y", "⇌ "
+                    "∫ ", "∬ ", "∭ ", "⨌ ", "∀ ", "∃ ", "∈ ", "∑ ", "∞ ", "∅ ", "⊆ ", "≥ ", "≈ ",
+                    "∆x", "∆y", "⇌ ", "± ", "≽ ", "≡ ", "ℝ ", "ℂ ", "ƒ′"
                 ],
                 colors: vec![C::Blue, C::Cyan, C::Green, C::Magenta, C::Yellow],
+            },
+            FoodBuiltin::Chess => FoodTheme {
+                theme: cow_vec![
+                    // "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ ", // white pieces
+                    "♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟ ", // black pieces
+                ],
+                colors: vec![],
             },
         }
     }
@@ -99,15 +107,7 @@ impl FoodTheme {
 
         if color && !self.colors.is_empty() {
             let color_id = id >> 16; // mask off upper 16 bits
-
             let color = self.colors[color_id % self.colors.len()];
-
-            // dbg!(
-            //     color_id,
-            //     self.colors.len(),
-            //     color_id % self.colors.len(),
-            //     color
-            // );
 
             use crossterm::style::Stylize;
             write!(f, "{}", food.with(color))?;
@@ -219,6 +219,7 @@ pub struct SnakeTheme {
 pub enum SnakeBuiltin {
     // TODO: more built-in snake themes
     Braille,
+    Line,
     Retro,
     Basic,
 }
@@ -241,6 +242,22 @@ impl Into<SnakeTheme> for SnakeBuiltin {
                 body_down_right: "⠾⠇".into(),
                 body_up_left: "⢰⡶".into(),
                 body_down_left: "⠸⠷".into(),
+            },
+            SnakeBuiltin::Line => SnakeTheme {
+                head_up: "╻ ".into(),
+                head_down: "╹ ".into(),
+                head_left: " ━".into(),
+                head_right: "━ ".into(),
+                tail_up: "╻ ".into(),
+                tail_down: "╹ ".into(),
+                tail_left: " ━".into(),
+                tail_right: "━ ".into(),
+                body_vertical: "┃ ".into(),
+                body_horizontal: "━━".into(),
+                body_up_right: "┓ ".into(),
+                body_down_right: "┛ ".into(),
+                body_up_left: "┏━".into(),
+                body_down_left: "┗━".into(),
             },
             SnakeBuiltin::Basic => SnakeTheme {
                 head_up: "[]".into(),

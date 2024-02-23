@@ -11,7 +11,7 @@ use crate::{
 #[derive(Clone, Copy)]
 enum FieldCell {
     Empty,
-    Food(usize), // stores the id of the food mod
+    Food(usize), // stores the id of the food
 
     HeadUp,
     HeadDown,
@@ -74,7 +74,7 @@ impl FieldCell {
     ) -> Result<(), std::io::Error> {
         let str: &str = match self {
             FieldCell::Food(id) => {
-                t.food_types.display_with_id(f, *id, color)?;
+                t.food.display_with_id(f, *id, color)?;
                 return Ok(());
             }
             FieldCell::Empty => &t.board.empty,
