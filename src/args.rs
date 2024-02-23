@@ -8,6 +8,10 @@ use crate::{game::GameConf, themes};
 #[derive(Parser, Debug)]
 pub struct Cli {
     // =#= Options:
+    /// Generate command line completions for given shell
+    #[arg(long, value_name = "SHELL")]
+    pub generate_completions: Option<clap_complete::Shell>,
+
     /// Don't display score during the game
     #[arg(long)]
     hide_score: bool,

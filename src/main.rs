@@ -3,6 +3,7 @@
 use std::time::Duration;
 use std::time::Instant;
 
+use clap::Args;
 use clap::Parser;
 
 mod args;
@@ -92,6 +93,15 @@ fn play(mut game: Game, theme: &FullTheme) -> eyre::Result<()> {
 
 fn main() -> eyre::Result<()> {
     let args = args::Cli::parse();
+
+    if let Some(shell) = args.generate_completions {
+        let name = env!("CARGO_BIN_NAME");
+        let mut cli = args::Cli::augment_args(clap::Command::new(name));
+        clap_complete::generate(shell, &mut cli, name, &mut std::io::stdout());
+
+        return Ok(());
+    }
+
     let conf = args::create_game_conf(&args)?;
     let game = Game::new(conf);
     let theme = args::into_theme(args);
