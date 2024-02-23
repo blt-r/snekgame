@@ -158,15 +158,11 @@ impl Game {
 
             self.score += 1;
             if self.conf.food_to_speed_up != 0 {
-                // check for overflow, because initial_speed may bet by user to u32::MAX
-                match self
+                // check for overflow, because initial_speed may be set by user to u32::MAX
+                self.speed = self
                     .conf
                     .initial_speed
-                    .checked_add(self.score / self.conf.food_to_speed_up)
-                {
-                    Some(new_speed) => self.speed = new_speed,
-                    None => (),
-                }
+                    .saturating_add(self.score / self.conf.food_to_speed_up);
             }
         }
 

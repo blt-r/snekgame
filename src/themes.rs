@@ -35,10 +35,10 @@ pub struct FoodTheme {
     colors: Vec<crossterm::style::Color>,
 }
 
-impl Into<FoodTheme> for FoodBuiltin {
-    fn into(self) -> FoodTheme {
+impl From<FoodBuiltin> for FoodTheme {
+    fn from(builtin: FoodBuiltin) -> Self {
         use crossterm::style::Color as C;
-        match self {
+        match builtin {
             FoodBuiltin::Emoji => FoodTheme {
                 theme: cow_vec![
                     "🍎", "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍏", "🍐", "🍑", "🍒",
@@ -143,9 +143,9 @@ pub enum BoardBuiltin {
     Retro,
 }
 
-impl Into<BoardTheme> for BoardBuiltin {
-    fn into(self) -> BoardTheme {
-        match self {
+impl From<BoardBuiltin> for BoardTheme {
+    fn from(builtin: BoardBuiltin) -> Self {
+        match builtin {
             BoardBuiltin::Double => BoardTheme {
                 border: Some(BorderTheme {
                     horizontal: "═".into(),
@@ -224,9 +224,9 @@ pub enum SnakeBuiltin {
     Basic,
 }
 
-impl Into<SnakeTheme> for SnakeBuiltin {
-    fn into(self) -> SnakeTheme {
-        match self {
+impl From<SnakeBuiltin> for SnakeTheme {
+    fn from(builtin: SnakeBuiltin) -> Self {
+        match builtin {
             SnakeBuiltin::Braille => SnakeTheme {
                 head_up: "⢰⡆".into(),
                 head_down: "⠸⠇".into(),

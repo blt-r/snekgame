@@ -206,7 +206,7 @@ impl Renderer {
             }
         }
 
-        self.stdout.write_all(&out_buf)?;
+        self.stdout.write_all(out_buf)?;
         self.stdout.flush()?;
         out_buf.clear();
 
