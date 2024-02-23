@@ -2,6 +2,12 @@
 name = "snekgame"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+
+readme = "README.md"
+description = "Highly customizable, cross-platform, and blazingly fast terminal snake game."
+homepage = "https://github.com/blt-r/snekgame"
+repository = "https://github.com/blt-r/snekgame"
 
 [dependencies]
 clap = { version = "4.5.1", features = ['derive', 'help', 'usage', 'error-context'] }
