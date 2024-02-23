@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crossterm::event::{self, KeyCode, KeyModifiers};
 
-use crate::game::{Dir, Game};
+use crate::game::{Dir, GameState};
 
 pub struct InputBuffer {
     internal: [Dir; Self::CAP as usize],
@@ -52,7 +52,7 @@ pub enum InputAction {
     Clear,
 }
 
-pub fn handle_inputs(buf: &mut InputBuffer, game: &Game) -> eyre::Result<InputAction> {
+pub fn handle_inputs(buf: &mut InputBuffer, game: &GameState) -> eyre::Result<InputAction> {
     let mut clear = false;
 
     while event::poll(Duration::ZERO)? {
@@ -85,7 +85,7 @@ pub fn handle_inputs(buf: &mut InputBuffer, game: &Game) -> eyre::Result<InputAc
     }
 }
 
-fn buffer_input(buf: &mut InputBuffer, game: &Game, input: Dir) {
+fn buffer_input(buf: &mut InputBuffer, game: &GameState, input: Dir) {
     if buf.size == 0 && !input.is_perpendicular(game.dir) {
         // if there's no inputs buffered and the snake cannot turn that way,
         // we don't want to buffer the input
@@ -101,7 +101,7 @@ fn buffer_input(buf: &mut InputBuffer, game: &Game, input: Dir) {
     buf.enqueue(input);
 }
 
-pub fn turn_to_do(buf: &mut InputBuffer, game: &Game) -> Option<Dir> {
+pub fn turn_to_do(buf: &mut InputBuffer, game: &GameState) -> Option<Dir> {
     while let Some(input) = buf.dequeue() {
         if input.is_perpendicular(game.dir) {
             return Some(input);

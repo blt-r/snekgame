@@ -4,7 +4,7 @@ use crossterm::{cursor, terminal, ExecutableCommand, QueueableCommand};
 use ndarray::Array2;
 
 use crate::{
-    game::{Dir, Game},
+    game::{Dir, GameState},
     themes::FullTheme,
 };
 
@@ -129,13 +129,17 @@ impl Renderer {
     }
 
     /// Queues clear escape sequence, so the next frame will clear the terminal
-    pub fn clear_terminal(&mut self) {
+    pub fn queue_clear(&mut self) {
         self.out_buf
             .queue(terminal::Clear(terminal::ClearType::All))
             .expect("writing into Vec cannot fail");
     }
 
-    pub fn render_game(&mut self, game: &Game, theme: &FullTheme) -> Result<(), std::io::Error> {
+    pub fn render_game(
+        &mut self,
+        game: &GameState,
+        theme: &FullTheme,
+    ) -> Result<(), std::io::Error> {
         // === Setup the screen
 
         let w = game.conf.w;

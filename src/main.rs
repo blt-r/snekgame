@@ -22,7 +22,7 @@ fn main() -> eyre::Result<()> {
     }
 
     let conf = args::create_game_conf(&args)?;
-    let game = game::Game::new(conf);
+    let game = game::GameState::new(conf);
     let theme = args::into_theme(args);
 
     game_loop::run(game, &theme)?;

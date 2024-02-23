@@ -1,5 +1,5 @@
 use crate::{
-    game::Game,
+    game::GameState,
     input,
     input::{InputAction, InputBuffer},
     render::Renderer,
@@ -44,7 +44,7 @@ impl Clock {
     }
 }
 
-pub fn run(mut game: Game, theme: &FullTheme) -> eyre::Result<()> {
+pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
     let mut renderer = Renderer::init(game.conf.w, game.conf.h)?;
 
     let mut input_buf = InputBuffer::new();
@@ -56,7 +56,7 @@ pub fn run(mut game: Game, theme: &FullTheme) -> eyre::Result<()> {
             InputAction::None => (),
             InputAction::Quit => break GameResult::Interrupted,
             InputAction::Clear => {
-                renderer.clear_terminal();
+                renderer.queue_clear();
             }
         }
 

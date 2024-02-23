@@ -78,7 +78,7 @@ pub struct GameConf {
     pub seed: u64,
 }
 
-pub struct Game {
+pub struct GameState {
     pub conf: GameConf,
     pub snake: Vec<Coords>,
     pub dir: Dir,
@@ -91,7 +91,7 @@ pub struct Game {
     pub rng: StdRng,
 }
 
-impl Game {
+impl GameState {
     pub fn new(conf: GameConf) -> Self {
         let y = conf.h / 2;
         let head_x = (conf.w - 1) / 2 + conf.initial_length / 2;
@@ -100,7 +100,7 @@ impl Game {
 
         let food = Vec::new();
 
-        let mut game = Game {
+        let mut game = GameState {
             snake,
             dir: Dir::Right,
             food,
