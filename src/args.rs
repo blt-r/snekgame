@@ -1,5 +1,5 @@
 use clap::Parser;
-use eyre::eyre;
+use eyre::Context;
 use rand::random;
 
 use crate::{game::GameConf, themes};
@@ -28,6 +28,10 @@ pub struct Cli {
     /// Height of the field
     #[arg(long, default_value_t = 15, help_heading = "Game config")]
     height: usize,
+
+    /// Make field the size of the terminal window
+    #[arg(long, help_heading = "Game config")]
+    fullscreen: bool,
 
     /// Makes the walls solid
     #[arg(long, short = 'w', help_heading = "Game config")]
@@ -83,28 +87,42 @@ pub struct Cli {
 
 /// Validates and creates the game config from cli arguments
 pub fn create_game_conf(a: &Cli) -> eyre::Result<GameConf> {
-    match () {
-        _ if a.height == 0 => Err(eyre!("Height cannot be zero")),
-        _ if a.width == 0 => Err(eyre!("Width cannot be zero")),
-        _ if a.speed == 0 => Err(eyre!("Speed cannot be zero")),
-        _ if a.snake_length == 0 => Err(eyre!("Snake length cannot be zero")),
-        _ if a.snake_length > a.width => Err(eyre!(
-            "Initial snake length cannot be larger then the width of the field"
-        )),
-        _ => Ok(GameConf {
-            food_to_speed_up: a.food_to_speed_up,
-            food_n: a.food,
-            initial_speed: a.speed,
-            h: a.height,
-            w: a.width,
-            initial_length: a.snake_length,
-            seed: match a.seed {
-                0 => random(),
-                seed => seed,
-            },
-            solid_walls: a.walls,
-        }),
+    let w: usize;
+    let h: usize;
+
+    if a.fullscreen {
+        let win = crossterm::terminal::window_size()
+            .wrap_err("Unable to get the size of the terminal window")?;
+        w = ((win.columns - 2) / 2) as usize;
+        h = (win.rows - 2) as usize;
+    } else {
+        w = a.width;
+        h = a.height;
     }
+
+    match () {
+        _ if h == 0 => eyre::bail!("Height cannot be zero"),
+        _ if w == 0 => eyre::bail!("Width cannot be zero"),
+        _ if a.speed == 0 => eyre::bail!("Speed cannot be zero"), // TODO: when snake speed is 0 make the snake move only on input
+        _ if a.snake_length == 0 => eyre::bail!("Snake length cannot be zero"),
+        _ if a.snake_length > w => {
+            eyre::bail!("Initial snake length cannot be larger then the width of the field")
+        }
+        _ => (),
+    }
+    Ok(GameConf {
+        food_to_speed_up: a.food_to_speed_up,
+        food_n: a.food,
+        initial_speed: a.speed,
+        h,
+        w,
+        initial_length: a.snake_length,
+        seed: match a.seed {
+            0 => random(),
+            seed => seed,
+        },
+        solid_walls: a.walls,
+    })
 }
 
 pub fn into_theme(args: Cli) -> themes::FullTheme {

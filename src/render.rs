@@ -197,7 +197,7 @@ impl Renderer {
             }
             write!(
                 out_buf,
-                "{}{}{}\r\n",
+                "{}{}{}",
                 border.bottom_left,
                 border.horizontal.repeat(w * cell_size),
                 border.bottom_right
