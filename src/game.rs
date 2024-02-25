@@ -17,7 +17,7 @@ impl std::fmt::Debug for Coords {
 
 impl Coords {
     /// moves the point in `dir` direction wrapping on `w` by `h` field.
-    pub fn move_towards(mut self, dir: Dir, w: usize, h: usize) -> Coords {
+    pub fn move_wrapping(mut self, dir: Dir, w: usize, h: usize) -> Coords {
         match dir {
             Dir::Up => self.y = (self.y + h - 1) % h,
             Dir::Down => self.y = (self.y + 1) % h,
@@ -25,6 +25,19 @@ impl Coords {
             Dir::Right => self.x = (self.x + 1) % w,
         }
         self
+    }
+
+    /// moves the point in `dir` direction returning None
+    /// if result is outside the `w` by `h` field.
+    pub fn move_bumping(mut self, dir: Dir, w: usize, h: usize) -> Option<Coords> {
+        match dir {
+            Dir::Up if self.y > 0 => self.y -= 1,
+            Dir::Down if self.y < h - 1 => self.y += 1,
+            Dir::Left if self.x > 0 => self.x -= 1,
+            Dir::Right if self.x < w - 1 => self.x += 1,
+            _ => return None,
+        }
+        Some(self)
     }
 
     /// Compares two adjacent coords on `w` by `h` field, wrapping around the edges
@@ -76,8 +89,10 @@ pub struct GameConf {
     pub w: usize,
     pub initial_length: usize,
     pub seed: u64,
+    pub solid_walls: bool,
 }
 
+/// TODO: make all of these private
 pub struct GameState {
     pub conf: GameConf,
     pub snake: Vec<Coords>,
@@ -114,7 +129,7 @@ impl GameState {
         };
 
         for _ in 0..game.conf.food_n {
-            if let Some(new) = game.new_food() {
+            if let Some(new) = game.find_new_food_place() {
                 game.food.push(new);
             } else {
                 game.is_win = true;
@@ -136,21 +151,32 @@ impl GameState {
             self.dir = dir;
         }
 
-        // remember where was the last element, in case we will need to add new one
-        let last = *self.snake.last().unwrap();
+        // remember where was the tail, to place here new element if needed
+        let old_tail = *self.snake.last().unwrap();
 
         // advance every element of the snake, except for the head
         for i in (1..self.snake.len()).rev() {
             self.snake[i] = self.snake[i - 1];
         }
 
-        self.snake[0] = self.snake[0].move_towards(self.dir, self.conf.w, self.conf.h);
+        if self.conf.solid_walls {
+            match self.snake[0].move_bumping(self.dir, self.conf.w, self.conf.h) {
+                Some(new_head_pos) => self.snake[0] = new_head_pos,
+                None => self.is_dead = true,
+            }
+        } else {
+            self.snake[0] = self.snake[0].move_wrapping(self.dir, self.conf.w, self.conf.h);
+        }
+
+        if self.snake[1..].contains(&self.snake[0]) {
+            self.is_dead = true;
+        }
 
         if let Some(i) = self.food.iter().position(|f| f.pos == self.snake[0]) {
             self.food.remove(i);
-            self.snake.push(last);
+            self.snake.push(old_tail);
 
-            if let Some(new) = self.new_food() {
+            if let Some(new) = self.find_new_food_place() {
                 self.food.push(new);
             } else {
                 self.is_win = true;
@@ -165,15 +191,12 @@ impl GameState {
                     .saturating_add(self.score / self.conf.food_to_speed_up);
             }
         }
-
-        if self.snake[1..].contains(&self.snake[0]) {
-            self.is_dead = true;
-        }
     }
 
     /// Finds new place for food, and
     /// if there is no space on the field returns `None`
-    fn new_food(&mut self) -> Option<Food> {
+    // TODO: make this function not have access to whole &mut self
+    fn find_new_food_place(&mut self) -> Option<Food> {
         let mut taken_spots = HashSet::new();
         taken_spots.extend(self.snake.iter().cloned());
         taken_spots.extend(self.food.iter().map(|f| f.pos));

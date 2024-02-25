@@ -29,6 +29,10 @@ pub struct Cli {
     #[arg(long, default_value_t = 15, help_heading = "Game config")]
     height: usize,
 
+    /// Makes the walls solid
+    #[arg(long, short = 'w', help_heading = "Game config")]
+    walls: bool,
+
     /// Initial length of the snake
     #[arg(
         long,
@@ -98,6 +102,7 @@ pub fn create_game_conf(a: &Cli) -> eyre::Result<GameConf> {
                 0 => random(),
                 seed => seed,
             },
+            solid_walls: a.walls,
         }),
     }
 }
