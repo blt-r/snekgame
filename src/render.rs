@@ -176,7 +176,7 @@ impl Renderer {
                 "{}{}{}",
                 border.top_left,
                 border.horizontal.repeat(w * cell_size),
-                border.top_right
+                border.top_right,
             )?;
             if theme.display_score {
                 out_buf.queue(cursor::MoveToColumn(cell_size as u16))?;
@@ -199,7 +199,6 @@ impl Renderer {
             )?;
         } else {
             if theme.display_score {
-                out_buf.queue(terminal::Clear(terminal::ClearType::CurrentLine))?;
                 write!(out_buf, "Score: {}\r\n", game.score)?;
             }
             for row in self.screen.outer_iter() {
