@@ -76,6 +76,11 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
 
     drop(renderer);
 
+    // the renderer does not print a new line after last line,
+    // because that would force terminals to have an extra
+    // empty line at the bottom of the screen
+    println!();
+
     if game_result == GameResult::Win {
         println!("You Won!");
     }

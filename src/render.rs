@@ -204,13 +204,13 @@ impl Renderer {
             )?;
         } else {
             if theme.display_score {
-                write!(out_buf, "Score: {}\r\n", game.score)?;
+                write!(out_buf, "Score: {}", game.score)?;
             }
             for row in self.screen.outer_iter() {
+                write!(out_buf, "\r\n")?;
                 for cell in row.iter() {
                     cell.draw_with_theme(out_buf, theme, self.color)?;
                 }
-                write!(out_buf, "\r\n")?;
             }
         }
 
