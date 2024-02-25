@@ -97,7 +97,7 @@ impl FieldCell {
     }
 }
 
-/// This struct holds StdoutLock which means, that while it exists,
+/// This struct holds `StdoutLock` which means, that while it exists,
 /// no other thread can write into stdout.
 /// Which is fine since the program is single threaded
 pub struct Renderer {
@@ -164,7 +164,7 @@ impl Renderer {
             self.screen[[tail.y, tail.x]] = FieldCell::tail_from(tail.compare(before_tail, w, h));
         }
 
-        for food in game.food.iter() {
+        for food in &game.food {
             self.screen[[food.pos.y, food.pos.x]] = FieldCell::Food(food.id);
         }
 
@@ -190,7 +190,7 @@ impl Renderer {
             write!(out_buf, "\r\n")?;
             for row in self.screen.outer_iter() {
                 write!(out_buf, "{}", border.vertical)?;
-                for cell in row.iter() {
+                for cell in &row {
                     cell.draw_with_theme(out_buf, theme, self.color)?;
                 }
                 write!(out_buf, "{}\r\n", border.vertical)?;
@@ -208,7 +208,7 @@ impl Renderer {
             }
             for row in self.screen.outer_iter() {
                 write!(out_buf, "\r\n")?;
-                for cell in row.iter() {
+                for cell in &row {
                     cell.draw_with_theme(out_buf, theme, self.color)?;
                 }
             }

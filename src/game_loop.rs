@@ -65,7 +65,8 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
 
         if game.is_dead {
             break GameResult::Lose;
-        } else if game.is_win {
+        }
+        if game.is_win {
             break GameResult::Win;
         }
 

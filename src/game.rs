@@ -198,7 +198,7 @@ impl GameState {
     // TODO: make this function not have access to whole &mut self
     fn find_new_food_place(&mut self) -> Option<Food> {
         let mut taken_spots = HashSet::new();
-        taken_spots.extend(self.snake.iter().cloned());
+        taken_spots.extend(self.snake.iter().copied());
         taken_spots.extend(self.food.iter().map(|f| f.pos));
 
         let spots = self.conf.h * self.conf.w - taken_spots.len();
