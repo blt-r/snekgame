@@ -1,5 +1,3 @@
-#![feature(array_windows)]
-
 use clap::Args;
 use clap::Parser;
 

@@ -147,7 +147,12 @@ impl Renderer {
 
         self.screen.fill(FieldCell::Empty);
 
-        for [before, el, after] in game.snake.array_windows() {
+        // FIXME: switch to `slice::array_windows` once it's stable
+        // https://github.com/rust-lang/rust/issues/75027
+        for win in game.snake.windows(3) {
+            let [before, el, after] = win else {
+                unreachable!()
+            };
             let dir1 = el.compare(before, w, h);
             let dir2 = el.compare(after, w, h);
             self.screen[[el.y, el.x]] = FieldCell::body_from(dir1, dir2);

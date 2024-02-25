@@ -11,11 +11,10 @@ Highly customizable, cross-platform, and blazingly fast terminal snake game.
 - Custom keybindings
 
 ## Building
-Requires nightly to build.
+Build it with cargo, with latest stable rust.
 
 Can be installed with:
 ```sh
-rustup toolchain add nightly
-cargo +nightly install snekgame
+cargo install snekgame
 ```
 
