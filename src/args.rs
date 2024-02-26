@@ -18,7 +18,7 @@ pub struct Cli {
 
     /// Seed for RNG. 0 for random seed.
     #[arg(long, default_value_t = 0)]
-    pub seed: u64,
+    seed: u64,
 
     // =#= Game config:
     /// Width of the field
