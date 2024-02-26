@@ -204,10 +204,12 @@ impl Renderer {
             )?;
         } else {
             if theme.display_score {
-                write!(out_buf, "Score: {}", game.score)?;
+                write!(out_buf, "Score: {}\r\n", game.score)?;
             }
-            for row in self.screen.outer_iter() {
-                write!(out_buf, "\r\n")?;
+            for (i, row) in self.screen.outer_iter().enumerate() {
+                if i != 0 {
+                    write!(out_buf, "\r\n")?;
+                }
                 for cell in &row {
                     cell.draw_with_theme(out_buf, theme, self.color)?;
                 }
