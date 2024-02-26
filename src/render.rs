@@ -5,7 +5,7 @@ use ndarray::Array2;
 
 use crate::{
     game::{Dir, GameState},
-    themes::FullTheme,
+    themes::{BorderTheme, FullTheme},
 };
 
 #[derive(Clone, Copy)]
@@ -170,50 +170,70 @@ impl Renderer {
 
         // === Start writng
 
-        let out_buf = &mut self.out_buf;
-        out_buf.queue(cursor::MoveTo(0, 0))?;
+        self.out_buf.queue(cursor::MoveTo(0, 0))?;
 
         if let Some(border) = &theme.board.border {
-            write!(out_buf, "{}", border.top_left)?;
-            for _ in 0..w {
-                write!(out_buf, "{}", border.horizontal)?;
-            }
-            write!(out_buf, "{}", border.top_right)?;
-            if theme.display_score {
-                out_buf.queue(cursor::MoveToColumn(2))?;
-                write!(out_buf, "Score: {}", game.score)?;
-            }
-            write!(out_buf, "\r\n")?;
-            for row in self.screen.outer_iter() {
-                write!(out_buf, "{}", border.vertical)?;
-                for cell in &row {
-                    cell.draw_with_theme(out_buf, theme, self.color)?;
-                }
-                write!(out_buf, "{}\r\n", border.vertical)?;
-            }
-            write!(out_buf, "{}", border.bottom_left)?;
-            for _ in 0..w {
-                write!(out_buf, "{}", border.horizontal)?;
-            }
-            write!(out_buf, "{}", border.bottom_right)?;
+            self.render_screen_with_border(game, theme, border)?;
         } else {
-            if theme.display_score {
-                write!(out_buf, "Score: {}\r\n", game.score)?;
-            }
-            for (i, row) in self.screen.outer_iter().enumerate() {
-                if i != 0 {
-                    write!(out_buf, "\r\n")?;
-                }
-                for cell in &row {
-                    cell.draw_with_theme(out_buf, theme, self.color)?;
-                }
-            }
+            self.render_screen_with_no_border(game, theme)?;
         }
 
-        self.stdout.write_all(out_buf)?;
+        self.stdout.write_all(&mut self.out_buf)?;
         self.stdout.flush()?;
-        out_buf.clear();
+        self.out_buf.clear();
 
+        Ok(())
+    }
+
+    fn render_screen_with_border(
+        &mut self,
+        game: &GameState,
+        theme: &FullTheme,
+        border: &BorderTheme,
+    ) -> Result<(), std::io::Error> {
+        let out_buf = &mut self.out_buf;
+        write!(out_buf, "{}", border.top_left)?;
+        for _ in 0..game.conf.w {
+            write!(out_buf, "{}", border.horizontal)?;
+        }
+        write!(out_buf, "{}", border.top_right)?;
+        if theme.display_score {
+            out_buf.queue(cursor::MoveToColumn(2))?;
+            write!(out_buf, "Score: {}", game.score)?;
+        }
+        write!(out_buf, "\r\n")?;
+        for row in self.screen.outer_iter() {
+            write!(out_buf, "{}", border.vertical)?;
+            for cell in &row {
+                cell.draw_with_theme(out_buf, theme, self.color)?;
+            }
+            write!(out_buf, "{}\r\n", border.vertical)?;
+        }
+        write!(out_buf, "{}", border.bottom_left)?;
+        for _ in 0..game.conf.w {
+            write!(out_buf, "{}", border.horizontal)?;
+        }
+        write!(out_buf, "{}", border.bottom_right)?;
+        Ok(())
+    }
+
+    fn render_screen_with_no_border(
+        &mut self,
+        game: &GameState,
+        theme: &FullTheme,
+    ) -> Result<(), std::io::Error> {
+        let out_buf = &mut self.out_buf;
+        if theme.display_score {
+            write!(out_buf, "Score: {}\r\n", game.score)?;
+        }
+        for (i, row) in self.screen.outer_iter().enumerate() {
+            if i != 0 {
+                write!(out_buf, "\r\n")?;
+            }
+            for cell in &row {
+                cell.draw_with_theme(out_buf, theme, self.color)?;
+            }
+        }
         Ok(())
     }
 }
