@@ -6,7 +6,7 @@ use crate::{game::GameConf, themes};
 
 /// Highly customizable, cross-platform, and blazingly fast terminal snake game
 #[derive(Parser, Debug)]
-pub struct Cli {
+pub struct SnekGameCli {
     // =#= Options:
     /// Generate command line completions for given shell
     #[arg(long, value_name = "SHELL")]
@@ -86,7 +86,7 @@ pub struct Cli {
 }
 
 /// Validates and creates the game config from cli arguments
-pub fn create_game_conf(a: &Cli) -> eyre::Result<GameConf> {
+pub fn create_game_conf(a: &SnekGameCli) -> eyre::Result<GameConf> {
     let w: usize;
     let h: usize;
 
@@ -125,7 +125,7 @@ pub fn create_game_conf(a: &Cli) -> eyre::Result<GameConf> {
     })
 }
 
-pub fn into_theme(args: Cli) -> themes::FullTheme {
+pub fn into_theme(args: SnekGameCli) -> themes::FullTheme {
     themes::FullTheme {
         board: args.board_theme.into(),
         snake: args.snake_theme.into(),

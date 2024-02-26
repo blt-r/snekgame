@@ -9,11 +9,11 @@ mod render;
 mod themes;
 
 fn main() -> eyre::Result<()> {
-    let args = args::Cli::parse();
+    let args = args::SnekGameCli::parse();
 
     if let Some(shell) = args.complete {
         let name = env!("CARGO_BIN_NAME");
-        let mut cli = args::Cli::augment_args(clap::Command::new(name));
+        let mut cli = args::SnekGameCli::augment_args(clap::Command::new(name));
         clap_complete::generate(shell, &mut cli, name, &mut std::io::stdout());
 
         return Ok(());

@@ -99,6 +99,10 @@ pub enum GameStatus {
     Ongoing,
 }
 
+// TODO: we want to maintain some sort of 2d array with the board that represents
+// the current state of the game. It will store the postions of food,
+// for constant time lookup. And it will store all the snake pieces for the
+// renderer, so it doesn't need to reconstruct the board every frame.
 pub struct GameState {
     conf: GameConf,
     snake: Vec<Coords>,
