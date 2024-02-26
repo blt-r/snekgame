@@ -142,14 +142,15 @@ impl Renderer {
     ) -> Result<(), std::io::Error> {
         // === Setup the screen
 
-        let w = game.conf.w;
-        let h = game.conf.h;
+        let w = game.width();
+        let h = game.height();
+        let snake = game.snake();
 
         self.screen.fill(FieldCell::Empty);
 
         // FIXME: switch to `slice::array_windows` once it's stable
         // https://github.com/rust-lang/rust/issues/75027
-        for win in game.snake.windows(3) {
+        for win in snake.windows(3) {
             let [before, el, after] = win else {
                 unreachable!()
             };
@@ -158,13 +159,13 @@ impl Renderer {
             self.screen[[el.y, el.x]] = FieldCell::body_from(dir1, dir2);
         }
 
-        self.screen[[game.snake[0].y, game.snake[0].x]] = FieldCell::head_from(game.dir);
+        self.screen[[snake[0].y, snake[0].x]] = FieldCell::head_from(game.snake_dir());
 
-        if let [.., before_tail, tail] = game.snake.as_slice() {
+        if let [.., before_tail, tail] = snake {
             self.screen[[tail.y, tail.x]] = FieldCell::tail_from(tail.compare(before_tail, w, h));
         }
 
-        for food in &game.food {
+        for food in game.food() {
             self.screen[[food.pos.y, food.pos.x]] = FieldCell::Food(food.id);
         }
 
@@ -193,13 +194,13 @@ impl Renderer {
     ) -> Result<(), std::io::Error> {
         let out_buf = &mut self.out_buf;
         write!(out_buf, "{}", border.top_left)?;
-        for _ in 0..game.conf.w {
+        for _ in 0..game.width() {
             write!(out_buf, "{}", border.horizontal)?;
         }
         write!(out_buf, "{}", border.top_right)?;
         if theme.display_score {
             out_buf.queue(cursor::MoveToColumn(2))?;
-            write!(out_buf, "Score: {}", game.score)?;
+            write!(out_buf, "Score: {}", game.score())?;
         }
         write!(out_buf, "\r\n")?;
         for row in self.screen.outer_iter() {
@@ -210,7 +211,7 @@ impl Renderer {
             write!(out_buf, "{}\r\n", border.vertical)?;
         }
         write!(out_buf, "{}", border.bottom_left)?;
-        for _ in 0..game.conf.w {
+        for _ in 0..game.width() {
             write!(out_buf, "{}", border.horizontal)?;
         }
         write!(out_buf, "{}", border.bottom_right)?;
@@ -224,7 +225,7 @@ impl Renderer {
     ) -> Result<(), std::io::Error> {
         let out_buf = &mut self.out_buf;
         if theme.display_score {
-            write!(out_buf, "Score: {}\r\n", game.score)?;
+            write!(out_buf, "Score: {}\r\n", game.score())?;
         }
         for (i, row) in self.screen.outer_iter().enumerate() {
             if i != 0 {

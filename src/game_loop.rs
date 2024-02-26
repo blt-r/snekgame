@@ -1,5 +1,5 @@
 use crate::{
-    game::GameState,
+    game::{GameState, GameStatus},
     input,
     input::{InputAction, InputBuffer},
     render::Renderer,
@@ -8,13 +8,6 @@ use crate::{
 
 use std::time::Duration;
 use std::time::Instant;
-
-#[derive(PartialEq)]
-pub enum GameResult {
-    Win,
-    Lose,
-    Interrupted,
-}
 
 struct Clock {
     frame_start: Instant, // instant at which the current frame started
@@ -45,16 +38,16 @@ impl Clock {
 }
 
 pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
-    let mut renderer = Renderer::init(game.conf.w, game.conf.h)?;
+    let mut renderer = Renderer::init(game.width(), game.height())?;
 
     let mut input_buf = InputBuffer::new();
 
     let mut clock = Clock::new();
 
-    let game_result = loop {
+    loop {
         match input::handle_inputs(&mut input_buf, &game)? {
             InputAction::None => (),
-            InputAction::Quit => break GameResult::Interrupted,
+            InputAction::Quit => break,
             InputAction::Clear => {
                 renderer.queue_clear();
             }
@@ -63,17 +56,15 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
         let turn = input::turn_to_do(&mut input_buf, &game);
         game.make_step(turn);
 
-        if game.is_dead {
-            break GameResult::Lose;
-        }
-        if game.is_win {
-            break GameResult::Win;
+        match game.status() {
+            GameStatus::Dead | GameStatus::Win => break,
+            _ => (),
         }
 
         renderer.render_game(&game, theme)?;
 
         clock.frame_end(game.expected_frametime());
-    };
+    }
 
     drop(renderer);
 
@@ -82,7 +73,7 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
     // empty line at the bottom of the screen
     println!();
 
-    if game_result == GameResult::Win {
+    if game.status() == GameStatus::Win {
         println!("You Won!");
     }
 

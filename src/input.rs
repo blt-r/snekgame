@@ -86,7 +86,7 @@ pub fn handle_inputs(buf: &mut InputBuffer, game: &GameState) -> eyre::Result<In
 }
 
 fn buffer_input(buf: &mut InputBuffer, game: &GameState, input: Dir) {
-    if buf.size == 0 && !input.is_perpendicular(game.dir) {
+    if buf.size == 0 && !input.is_perpendicular(game.snake_dir()) {
         // if there's no inputs buffered and the snake cannot turn that way,
         // we don't want to buffer the input
         return;
@@ -103,7 +103,7 @@ fn buffer_input(buf: &mut InputBuffer, game: &GameState, input: Dir) {
 
 pub fn turn_to_do(buf: &mut InputBuffer, game: &GameState) -> Option<Dir> {
     while let Some(input) = buf.dequeue() {
-        if input.is_perpendicular(game.dir) {
+        if input.is_perpendicular(game.snake_dir()) {
             return Some(input);
         }
     }

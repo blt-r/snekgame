@@ -92,18 +92,23 @@ pub struct GameConf {
     pub solid_walls: bool,
 }
 
-/// TODO: make all of these private
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GameStatus {
+    Win,
+    Dead,
+    Ongoing,
+}
+
 pub struct GameState {
-    pub conf: GameConf,
-    pub snake: Vec<Coords>,
-    pub dir: Dir,
-    pub food: Vec<Food>,
-    pub is_dead: bool,
-    pub is_win: bool,
-    pub time_since_last_step: Duration,
-    pub score: u32,
-    pub speed: u32,
-    pub rng: StdRng,
+    conf: GameConf,
+    snake: Vec<Coords>,
+    snake_dir: Dir,
+    food: Vec<Food>,
+    status: GameStatus,
+    time_since_last_step: Duration,
+    score: u32,
+    speed: u32,
+    rng: StdRng,
 }
 
 impl GameState {
@@ -117,10 +122,9 @@ impl GameState {
 
         let mut game = GameState {
             snake,
-            dir: Dir::Right,
+            snake_dir: Dir::Right,
             food,
-            is_dead: false,
-            is_win: false,
+            status: GameStatus::Ongoing,
             time_since_last_step: Duration::ZERO,
             score: 0,
             speed: conf.initial_speed,
@@ -132,7 +136,7 @@ impl GameState {
             if let Some(new) = game.find_new_food_place() {
                 game.food.push(new);
             } else {
-                game.is_win = true;
+                game.status = GameStatus::Win;
                 break;
             };
         }
@@ -140,15 +144,11 @@ impl GameState {
         game
     }
 
-    pub fn expected_frametime(&self) -> Duration {
-        Duration::from_secs(1) / self.speed
-    }
-
     pub fn make_step(&mut self, turn: Option<Dir>) {
         self.time_since_last_step = Duration::ZERO;
 
         if let Some(dir) = turn {
-            self.dir = dir;
+            self.snake_dir = dir;
         }
 
         // remember where was the tail, to place here new element if needed
@@ -160,16 +160,16 @@ impl GameState {
         }
 
         if self.conf.solid_walls {
-            match self.snake[0].move_bumping(self.dir, self.conf.w, self.conf.h) {
+            match self.snake[0].move_bumping(self.snake_dir, self.conf.w, self.conf.h) {
                 Some(new_head_pos) => self.snake[0] = new_head_pos,
-                None => self.is_dead = true,
+                None => self.status = GameStatus::Dead,
             }
         } else {
-            self.snake[0] = self.snake[0].move_wrapping(self.dir, self.conf.w, self.conf.h);
+            self.snake[0] = self.snake[0].move_wrapping(self.snake_dir, self.conf.w, self.conf.h);
         }
 
         if self.snake[1..].contains(&self.snake[0]) {
-            self.is_dead = true;
+            self.status = GameStatus::Dead;
         }
 
         if let Some(i) = self.food.iter().position(|f| f.pos == self.snake[0]) {
@@ -179,7 +179,7 @@ impl GameState {
             if let Some(new) = self.find_new_food_place() {
                 self.food.push(new);
             } else {
-                self.is_win = true;
+                self.status = GameStatus::Win;
             }
 
             self.score += 1;
@@ -230,5 +230,30 @@ impl GameState {
             pos: coords,
             id: self.rng.gen(),
         })
+    }
+
+    pub fn expected_frametime(&self) -> Duration {
+        Duration::from_secs(1) / self.speed
+    }
+    pub fn width(&self) -> usize {
+        self.conf.w
+    }
+    pub fn height(&self) -> usize {
+        self.conf.h
+    }
+    pub fn score(&self) -> u32 {
+        self.score
+    }
+    pub fn snake_dir(&self) -> Dir {
+        self.snake_dir
+    }
+    pub fn status(&self) -> GameStatus {
+        self.status
+    }
+    pub fn snake(&self) -> &[Coords] {
+        self.snake.as_slice()
+    }
+    pub fn food(&self) -> &[Food] {
+        self.food.as_slice()
     }
 }
