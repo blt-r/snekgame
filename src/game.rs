@@ -105,7 +105,6 @@ pub struct GameState {
     snake_dir: Dir,
     food: Vec<Food>,
     status: GameStatus,
-    time_since_last_step: Duration,
     score: u32,
     speed: u32,
     rng: StdRng,
@@ -125,7 +124,6 @@ impl GameState {
             snake_dir: Dir::Right,
             food,
             status: GameStatus::Ongoing,
-            time_since_last_step: Duration::ZERO,
             score: 0,
             speed: conf.initial_speed,
             rng: StdRng::seed_from_u64(conf.seed),
@@ -145,8 +143,6 @@ impl GameState {
     }
 
     pub fn make_step(&mut self, turn: Option<Dir>) {
-        self.time_since_last_step = Duration::ZERO;
-
         if let Some(dir) = turn {
             self.snake_dir = dir;
         }
