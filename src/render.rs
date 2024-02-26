@@ -174,17 +174,15 @@ impl Renderer {
         out_buf.queue(cursor::MoveTo(0, 0))?;
 
         if let Some(border) = &theme.board.border {
-            let cell_size = theme.board.empty.len();
-
             write!(
                 out_buf,
                 "{}{}{}",
                 border.top_left,
-                border.horizontal.repeat(w * cell_size),
+                border.horizontal.repeat(w),
                 border.top_right,
             )?;
             if theme.display_score {
-                out_buf.queue(cursor::MoveToColumn(cell_size as u16))?;
+                out_buf.queue(cursor::MoveToColumn(2))?;
                 write!(out_buf, "Score: {}", game.score)?;
             }
             write!(out_buf, "\r\n")?;
@@ -199,7 +197,7 @@ impl Renderer {
                 out_buf,
                 "{}{}{}",
                 border.bottom_left,
-                border.horizontal.repeat(w * cell_size),
+                border.horizontal.repeat(w),
                 border.bottom_right
             )?;
         } else {

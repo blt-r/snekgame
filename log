@@ -1,0 +1,3 @@
+   Compiling snekgame v0.1.1 (/home/blt/cood/rust/snekgame)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.90s
+     Running `target/debug/snekgame`

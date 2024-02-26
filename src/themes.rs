@@ -148,7 +148,7 @@ impl From<BoardBuiltin> for BoardTheme {
         match builtin {
             BoardBuiltin::Double => BoardTheme {
                 border: Some(BorderTheme {
-                    horizontal: "═".into(),
+                    horizontal: "══".into(),
                     vertical: "║".into(),
                     top_left: "╔".into(),
                     top_right: "╗".into(),
@@ -159,7 +159,7 @@ impl From<BoardBuiltin> for BoardTheme {
             },
             BoardBuiltin::Rounded => BoardTheme {
                 border: Some(BorderTheme {
-                    horizontal: "─".into(),
+                    horizontal: "──".into(),
                     vertical: "│".into(),
                     top_left: "╭".into(),
                     top_right: "╮".into(),
@@ -170,7 +170,7 @@ impl From<BoardBuiltin> for BoardTheme {
             },
             BoardBuiltin::Ascii => BoardTheme {
                 border: Some(BorderTheme {
-                    horizontal: "-".into(),
+                    horizontal: "--".into(),
                     vertical: "|".into(),
                     top_left: "*".into(),
                     top_right: "*".into(),
