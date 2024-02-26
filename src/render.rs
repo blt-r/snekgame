@@ -174,13 +174,11 @@ impl Renderer {
         out_buf.queue(cursor::MoveTo(0, 0))?;
 
         if let Some(border) = &theme.board.border {
-            write!(
-                out_buf,
-                "{}{}{}",
-                border.top_left,
-                border.horizontal.repeat(w),
-                border.top_right,
-            )?;
+            write!(out_buf, "{}", border.top_left)?;
+            for _ in 0..w {
+                write!(out_buf, "{}", border.horizontal)?;
+            }
+            write!(out_buf, "{}", border.top_right)?;
             if theme.display_score {
                 out_buf.queue(cursor::MoveToColumn(2))?;
                 write!(out_buf, "Score: {}", game.score)?;
@@ -193,13 +191,11 @@ impl Renderer {
                 }
                 write!(out_buf, "{}\r\n", border.vertical)?;
             }
-            write!(
-                out_buf,
-                "{}{}{}",
-                border.bottom_left,
-                border.horizontal.repeat(w),
-                border.bottom_right
-            )?;
+            write!(out_buf, "{}", border.bottom_left)?;
+            for _ in 0..w {
+                write!(out_buf, "{}", border.horizontal)?;
+            }
+            write!(out_buf, "{}", border.bottom_right)?;
         } else {
             if theme.display_score {
                 write!(out_buf, "Score: {}\r\n", game.score)?;
