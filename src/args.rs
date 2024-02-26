@@ -114,8 +114,8 @@ pub fn create_game_conf(a: &Cli) -> eyre::Result<GameConf> {
         food_to_speed_up: a.food_to_speed_up,
         food_n: a.food,
         initial_speed: a.speed,
-        h,
-        w,
+        height: h,
+        width: w,
         initial_length: a.snake_length,
         seed: match a.seed {
             0 => random(),

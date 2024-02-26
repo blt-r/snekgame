@@ -85,8 +85,8 @@ pub struct GameConf {
     pub food_to_speed_up: u32,
     pub food_n: u32,
     pub initial_speed: u32,
-    pub h: usize,
-    pub w: usize,
+    pub height: usize,
+    pub width: usize,
     pub initial_length: usize,
     pub seed: u64,
     pub solid_walls: bool,
@@ -113,8 +113,8 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(conf: GameConf) -> Self {
-        let y = conf.h / 2;
-        let head_x = (conf.w - 1) / 2 + conf.initial_length / 2;
+        let y = conf.height / 2;
+        let head_x = (conf.width - 1) / 2 + conf.initial_length / 2;
         let tail_x = head_x + 1 - conf.initial_length;
         let snake = (tail_x..=head_x).rev().map(|x| Coords { x, y }).collect();
 
@@ -160,12 +160,13 @@ impl GameState {
         }
 
         if self.conf.solid_walls {
-            match self.snake[0].move_bumping(self.snake_dir, self.conf.w, self.conf.h) {
+            match self.snake[0].move_bumping(self.snake_dir, self.conf.width, self.conf.height) {
                 Some(new_head_pos) => self.snake[0] = new_head_pos,
                 None => self.status = GameStatus::Dead,
             }
         } else {
-            self.snake[0] = self.snake[0].move_wrapping(self.snake_dir, self.conf.w, self.conf.h);
+            self.snake[0] =
+                self.snake[0].move_wrapping(self.snake_dir, self.conf.width, self.conf.height);
         }
 
         if self.snake[1..].contains(&self.snake[0]) {
@@ -201,7 +202,7 @@ impl GameState {
         taken_spots.extend(self.snake.iter().copied());
         taken_spots.extend(self.food.iter().map(|f| f.pos));
 
-        let spots = self.conf.h * self.conf.w - taken_spots.len();
+        let spots = self.conf.height * self.conf.width - taken_spots.len();
 
         if spots == 0 {
             return None;
@@ -220,7 +221,7 @@ impl GameState {
             }
 
             coords.x += 1;
-            if coords.x >= self.conf.w {
+            if coords.x >= self.conf.width {
                 coords.x = 0;
                 coords.y += 1;
             }
@@ -236,10 +237,10 @@ impl GameState {
         Duration::from_secs(1) / self.speed
     }
     pub fn width(&self) -> usize {
-        self.conf.w
+        self.conf.width
     }
     pub fn height(&self) -> usize {
-        self.conf.h
+        self.conf.height
     }
     pub fn score(&self) -> u32 {
         self.score
