@@ -6,6 +6,7 @@ Highly customizable, cross-platform, and blazingly fast terminal snake game.
 - Customizable visuals with many built-in themes
 
 ## Things there aren't (yet)
+- Ability to pause the game
 - Custom themes
 - Custom keybindings
 
