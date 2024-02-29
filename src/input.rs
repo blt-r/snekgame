@@ -40,8 +40,10 @@ impl InputBuffer {
             return None;
         }
         let first = self.internal[0];
-        self.internal.rotate_left(1);
         self.size -= 1;
+        for i in 0..self.size as usize {
+            self.internal[i] = self.internal[i + 1];
+        }
         Some(first)
     }
 }
