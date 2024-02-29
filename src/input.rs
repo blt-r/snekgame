@@ -66,9 +66,6 @@ pub fn handle_inputs(buf: &mut InputBuffer, game: &GameState) -> eyre::Result<In
             }
             _ => continue,
         };
-        if e.code == KeyCode::Char('c') && e.modifiers.contains(KeyModifiers::CONTROL) {
-            return Ok(InputAction::Quit);
-        }
 
         // TODO: add a way to customize keybinds
         match e.code {
@@ -76,6 +73,9 @@ pub fn handle_inputs(buf: &mut InputBuffer, game: &GameState) -> eyre::Result<In
             KeyCode::Char('s') | KeyCode::Down => buffer_input(buf, game, Dir::Down),
             KeyCode::Char('a') | KeyCode::Left => buffer_input(buf, game, Dir::Left),
             KeyCode::Char('d') | KeyCode::Right => buffer_input(buf, game, Dir::Right),
+            KeyCode::Char('c') if e.modifiers.contains(KeyModifiers::CONTROL) => {
+                return Ok(InputAction::Quit)
+            }
             KeyCode::Char('q') => return Ok(InputAction::Quit),
             _ => (),
         };
