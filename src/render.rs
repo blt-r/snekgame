@@ -179,8 +179,21 @@ impl Renderer {
             self.render_screen_with_no_border(game, theme)?;
         }
 
-        self.stdout.write_all(&mut self.out_buf)?;
-        self.stdout.flush()?;
+        // self.stdout.write_all(&mut self.out_buf)?;
+        // self.stdout.flush()?;
+
+        // Use raw fd to bypass annoying line buffer in Stdout.
+
+        // SAFETY: StdoutLock.as_raw_fd() always returns a valid file descriptor
+        // we also hold the StdoutLock which prevents race conditions
+        // (although the program is single threaded anyway)
+        unsafe {
+            use std::os::fd::{AsRawFd, FromRawFd};
+            let mut raw_stdout = std::fs::File::from_raw_fd(self.stdout.as_raw_fd());
+            raw_stdout.write_all(&mut self.out_buf)?;
+            std::mem::forget(raw_stdout); // Do not try to close stdout
+        }
+
         self.out_buf.clear();
 
         Ok(())
