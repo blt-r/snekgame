@@ -9,14 +9,6 @@ pub struct InputBuffer {
     size: u8,
 }
 
-impl std::ops::Deref for InputBuffer {
-    type Target = [Dir];
-
-    fn deref(&self) -> &Self::Target {
-        &self.internal[..self.size as usize]
-    }
-}
-
 impl InputBuffer {
     const CAP: u8 = 5;
 
@@ -27,8 +19,12 @@ impl InputBuffer {
         }
     }
 
+    fn as_slice(&self) -> &[Dir] {
+        &self.internal[..self.size as usize]
+    }
+
     /// Pushes element if buffer is not full
-    pub fn enqueue(&mut self, input: Dir) {
+    fn enqueue(&mut self, input: Dir) {
         if self.size < Self::CAP {
             self.internal[self.size as usize] = input;
             self.size += 1;
@@ -46,68 +42,64 @@ impl InputBuffer {
         }
         Some(first)
     }
-}
 
-pub enum InputAction {
-    None,
-    Quit,
-    Clear,
-}
-
-pub fn handle_inputs(buf: &mut InputBuffer, game: &GameState) -> eyre::Result<InputAction> {
-    let mut clear = false;
-
-    while event::poll(Duration::ZERO)? {
-        let e = match event::read()? {
-            event::Event::Key(e) => e,
-            event::Event::Resize(_, _) => {
-                clear = true;
-                continue;
-            }
-            _ => continue,
-        };
-
-        // TODO: add a way to customize keybinds
-        match e.code {
-            KeyCode::Char('w') | KeyCode::Up => buffer_input(buf, game, Dir::Up),
-            KeyCode::Char('s') | KeyCode::Down => buffer_input(buf, game, Dir::Down),
-            KeyCode::Char('a') | KeyCode::Left => buffer_input(buf, game, Dir::Left),
-            KeyCode::Char('d') | KeyCode::Right => buffer_input(buf, game, Dir::Right),
-            KeyCode::Char('c') if e.modifiers.contains(KeyModifiers::CONTROL) => {
-                return Ok(InputAction::Quit)
-            }
-            KeyCode::Char('q') => return Ok(InputAction::Quit),
-            _ => (),
-        };
-    }
-    if clear {
-        Ok(InputAction::Clear)
-    } else {
-        Ok(InputAction::None)
-    }
-}
-
-fn buffer_input(buf: &mut InputBuffer, game: &GameState, input: Dir) {
-    if buf.size == 0 && !input.is_perpendicular(game.snake_dir()) {
-        // if there's no inputs buffered and the snake cannot turn that way,
-        // we don't want to buffer the input
-        return;
-    }
-
-    if buf.last() == Some(&input) {
-        // if there is already the same input buffered,
-        // we don't want to buffer the input
-        return;
-    }
-
-    buf.enqueue(input);
-}
-
-pub fn turn_to_do(buf: &mut InputBuffer, game: &GameState) -> Option<Dir> {
-    while let Some(input) = buf.dequeue() {
-        if input.is_perpendicular(game.snake_dir()) {
-            return Some(input);
+    pub fn buffer_input(&mut self, game: &GameState, input: Dir) {
+        if self.size == 0 && !input.is_perpendicular(game.snake_dir()) {
+            // if there's no inputs buffered and the snake cannot turn that way,
+            // we don't want to buffer the input
+            return;
         }
+
+        if self.as_slice().last() == Some(&input) {
+            // if there is already the same input buffered,
+            // we don't want to buffer the input
+            return;
+        }
+
+        self.enqueue(input);
     }
-    None
+
+    /// If theres a valid turn queued, returns that turn
+    pub fn turn_to_do(&mut self, game: &GameState) -> Option<Dir> {
+        while let Some(input) = self.dequeue() {
+            if input.is_perpendicular(game.snake_dir()) {
+                return Some(input);
+            }
+        }
+        None
+    }
+}
+
+pub enum Input {
+    Pause,
+    Resize,
+    Move(Dir),
+    Quit,
+}
+
+fn handle_event(e: event::Event) -> Option<Input> {
+    match e {
+        event::Event::Resize(_, _) => Some(Input::Resize),
+        event::Event::Key(key) => match key.code {
+            KeyCode::Char('w') | KeyCode::Up => Some(Input::Move(Dir::Up)),
+            KeyCode::Char('s') | KeyCode::Down => Some(Input::Move(Dir::Down)),
+            KeyCode::Char('a') | KeyCode::Left => Some(Input::Move(Dir::Left)),
+            KeyCode::Char('d') | KeyCode::Right => Some(Input::Move(Dir::Right)),
+            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                Some(Input::Quit)
+            }
+            KeyCode::Char('q') => Some(Input::Quit),
+            _ => None,
+        },
+
+        _ => None,
+    }
+}
+
+pub fn get_input() -> eyre::Result<Option<Input>> {
+    if !event::poll(Duration::ZERO)? {
+        return Ok(None);
+    }
+
+    Ok(handle_event(event::read()?))
 }

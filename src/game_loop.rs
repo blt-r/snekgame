@@ -1,7 +1,6 @@
 use crate::{
     game::{GameState, GameStatus},
-    input,
-    input::{InputAction, InputBuffer},
+    input::{self, Input, InputBuffer},
     render::Renderer,
     themes::FullTheme,
 };
@@ -44,16 +43,17 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
 
     let mut clock = Clock::new();
 
-    loop {
-        match input::handle_inputs(&mut input_buf, &game)? {
-            InputAction::None => (),
-            InputAction::Quit => break,
-            InputAction::Clear => {
-                renderer.queue_clear();
+    'game_loop: loop {
+        while let Some(event) = input::get_input()? {
+            match event {
+                Input::Pause => todo!(),
+                Input::Resize => renderer.queue_clear(),
+                Input::Move(dir) => input_buf.buffer_input(&game, dir),
+                Input::Quit => break 'game_loop,
             }
         }
 
-        let turn = input::turn_to_do(&mut input_buf, &game);
+        let turn = input_buf.turn_to_do(&game);
         game.make_step(turn);
 
         match game.status() {
