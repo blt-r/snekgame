@@ -53,8 +53,7 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
             }
         }
 
-        let turn = input_buf.turn_to_do(&game);
-        game.make_step(turn);
+        game.make_step(input_buf.turn_to_do());
 
         match game.status() {
             GameStatus::Dead | GameStatus::Win => break,

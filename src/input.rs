@@ -23,6 +23,10 @@ impl InputBuffer {
         &self.internal[..self.size as usize]
     }
 
+    fn last(&self) -> Option<Dir> {
+        self.as_slice().last().copied()
+    }
+
     /// Pushes element if buffer is not full
     fn enqueue(&mut self, input: Dir) {
         if self.size < Self::CAP {
@@ -44,29 +48,17 @@ impl InputBuffer {
     }
 
     pub fn buffer_input(&mut self, game: &GameState, input: Dir) {
-        if self.size == 0 && !input.is_perpendicular(game.snake_dir()) {
-            // if there's no inputs buffered and the snake cannot turn that way,
-            // we don't want to buffer the input
-            return;
-        }
+        let current_dir = self.last().unwrap_or(game.snake_dir());
 
-        if self.as_slice().last() == Some(&input) {
-            // if there is already the same input buffered,
-            // we don't want to buffer the input
-            return;
+        if input.is_perpendicular(current_dir) {
+            self.enqueue(input);
         }
-
-        self.enqueue(input);
     }
 
-    /// If theres a valid turn queued, returns that turn
-    pub fn turn_to_do(&mut self, game: &GameState) -> Option<Dir> {
-        while let Some(input) = self.dequeue() {
-            if input.is_perpendicular(game.snake_dir()) {
-                return Some(input);
-            }
-        }
-        None
+    pub fn turn_to_do(&mut self) -> Option<Dir> {
+        // If all previously queued turns are made by the snake,
+        // there will be no invalid turns in the queue
+        self.dequeue()
     }
 }
 
