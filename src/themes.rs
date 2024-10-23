@@ -109,8 +109,7 @@ impl FoodTheme {
             let color_id = id >> 16; // mask off upper 16 bits
             let color = self.colors[color_id % self.colors.len()];
 
-            use crossterm::style::Stylize;
-            write!(f, "{}", food.with(color))?;
+            write!(f, "{}", crossterm::style::Stylize::with(food, color))?;
         } else {
             write!(f, "{}", food)?;
         }

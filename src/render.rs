@@ -103,9 +103,9 @@ impl FieldCell {
 pub struct Renderer {
     screen: Array2<FieldCell>,
     stdout: StdoutLock<'static>,
-    /// By default [std::io::Stdout] flushes on `\n` which we don't want
-    /// see: https://github.com/rust-lang/libs-team/issues/148
-    /// and: https://github.com/rust-lang/rust/pull/78515
+    /// By default [`std::io::Stdout`] flushes on `\n` which we don't want
+    /// see: <https://github.com/rust-lang/libs-team/issues/148>
+    /// and: <https://github.com/rust-lang/rust/pull/78515>
     out_buf: Vec<u8>,
     color: bool,
 }
@@ -190,7 +190,7 @@ impl Renderer {
         unsafe {
             use std::os::fd::{AsRawFd, FromRawFd};
             let mut raw_stdout = std::fs::File::from_raw_fd(self.stdout.as_raw_fd());
-            raw_stdout.write_all(&mut self.out_buf)?;
+            raw_stdout.write_all(&self.out_buf)?;
             std::mem::forget(raw_stdout); // Do not try to close stdout
         }
 

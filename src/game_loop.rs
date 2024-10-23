@@ -46,7 +46,7 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
     'game_loop: loop {
         while let Some(event) = input::get_input()? {
             match event {
-                Input::Pause => todo!(),
+                Input::_Pause => todo!(),
                 Input::Resize => renderer.queue_clear(),
                 Input::Move(dir) => input_buf.buffer_input(&game, dir),
                 Input::Quit => break 'game_loop,
@@ -57,7 +57,7 @@ pub fn run(mut game: GameState, theme: &FullTheme) -> eyre::Result<()> {
 
         match game.status() {
             GameStatus::Dead | GameStatus::Win => break,
-            _ => (),
+            GameStatus::Ongoing => (),
         }
 
         renderer.render_game(&game, theme)?;

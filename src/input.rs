@@ -1,12 +1,12 @@
 use std::time::Duration;
 
-use crossterm::event::{self, KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
 use crate::game::{Dir, GameState};
 
 pub struct InputBuffer {
-    internal: [Dir; Self::CAP as usize],
     size: u8,
+    internal: [Dir; Self::CAP as usize],
 }
 
 impl InputBuffer {
@@ -63,16 +63,16 @@ impl InputBuffer {
 }
 
 pub enum Input {
-    Pause,
+    _Pause,
     Resize,
     Move(Dir),
     Quit,
 }
 
-fn handle_event(e: event::Event) -> Option<Input> {
+fn handle_event(e: &Event) -> Option<Input> {
     match e {
-        event::Event::Resize(_, _) => Some(Input::Resize),
-        event::Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
+        Event::Resize(_, _) => Some(Input::Resize),
+        Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
             KeyCode::Char('w') | KeyCode::Up => Some(Input::Move(Dir::Up)),
             KeyCode::Char('s') | KeyCode::Down => Some(Input::Move(Dir::Down)),
             KeyCode::Char('a') | KeyCode::Left => Some(Input::Move(Dir::Left)),
@@ -93,5 +93,5 @@ pub fn get_input() -> eyre::Result<Option<Input>> {
         return Ok(None);
     }
 
-    Ok(handle_event(event::read()?))
+    Ok(handle_event(&event::read()?))
 }
