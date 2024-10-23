@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crossterm::event::{self, KeyCode, KeyModifiers};
+use crossterm::event::{self, KeyCode, KeyEventKind, KeyModifiers};
 
 use crate::game::{Dir, GameState};
 
@@ -72,7 +72,7 @@ pub enum Input {
 fn handle_event(e: event::Event) -> Option<Input> {
     match e {
         event::Event::Resize(_, _) => Some(Input::Resize),
-        event::Event::Key(key) => match key.code {
+        event::Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
             KeyCode::Char('w') | KeyCode::Up => Some(Input::Move(Dir::Up)),
             KeyCode::Char('s') | KeyCode::Down => Some(Input::Move(Dir::Down)),
             KeyCode::Char('a') | KeyCode::Left => Some(Input::Move(Dir::Left)),
