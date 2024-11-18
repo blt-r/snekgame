@@ -1,4 +1,9 @@
-use std::io::{StdoutLock, Write};
+use std::{
+    fs::File,
+    io::{StdoutLock, Write},
+    mem::ManuallyDrop,
+    os::fd::{AsRawFd, FromRawFd},
+};
 
 use crossterm::{cursor, terminal, ExecutableCommand, QueueableCommand};
 use ndarray::Array2;
@@ -102,7 +107,7 @@ impl FieldCell {
 /// Which is fine since the program is single threaded
 pub struct Renderer {
     screen: Array2<FieldCell>,
-    stdout: StdoutLock<'static>,
+    stdout_lock: StdoutLock<'static>,
     /// By default [`std::io::Stdout`] flushes on `\n` which we don't want
     /// see: <https://github.com/rust-lang/libs-team/issues/148>
     /// and: <https://github.com/rust-lang/rust/pull/78515>
@@ -112,20 +117,21 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn init(game_width: usize, game_height: usize) -> Result<Self, std::io::Error> {
-        let mut stdout = std::io::stdout().lock();
-
         terminal::enable_raw_mode()?;
-        stdout.queue(cursor::Hide)?;
-        stdout.queue(terminal::Clear(terminal::ClearType::All))?;
-        // stdout.queue(cursor::MoveTo(0, 0))?;
-        stdout.flush()?;
 
-        Ok(Self {
+        let mut this = Self {
             screen: Array2::from_elem([game_height, game_width], FieldCell::Empty),
-            stdout,
+            stdout_lock: std::io::stdout().lock(),
             out_buf: Vec::with_capacity(8 * 1024),
             color: !crossterm::style::Colored::ansi_color_disabled(),
-        })
+        };
+
+        this.out_buf.queue(cursor::Hide)?;
+        this.out_buf
+            .queue(terminal::Clear(terminal::ClearType::All))?;
+        this.flush_buf()?;
+
+        Ok(this)
     }
 
     /// Queues clear escape sequence, so the next frame will clear the terminal
@@ -181,22 +187,7 @@ impl Renderer {
             self.render_screen_with_no_border(game, theme)?;
         }
 
-        // self.stdout.write_all(&mut self.out_buf)?;
-        // self.stdout.flush()?;
-
-        // Use raw fd to bypass annoying line buffer in Stdout.
-
-        // SAFETY: StdoutLock.as_raw_fd() always returns a valid file descriptor
-        // we also hold the StdoutLock which prevents race conditions
-        // (although the program is single threaded anyway)
-        unsafe {
-            use std::os::fd::{AsRawFd, FromRawFd};
-            let mut raw_stdout = std::fs::File::from_raw_fd(self.stdout.as_raw_fd());
-            raw_stdout.write_all(&self.out_buf)?;
-            std::mem::forget(raw_stdout); // Do not try to close stdout
-        }
-
-        self.out_buf.clear();
+        self.flush_buf()?;
 
         Ok(())
     }
@@ -252,12 +243,26 @@ impl Renderer {
         }
         Ok(())
     }
+
+    fn flush_buf(&mut self) -> std::io::Result<()> {
+        // Use raw fd to bypass annoying line buffer in Stdout.
+
+        // SAFETY: Self holds the lock to stdout
+        unsafe {
+            let mut raw_stdout = ManuallyDrop::new(File::from_raw_fd(self.stdout_lock.as_raw_fd()));
+            raw_stdout.write_all(&self.out_buf)?;
+        }
+
+        self.out_buf.clear();
+
+        Ok(())
+    }
 }
 
 impl Drop for Renderer {
     fn drop(&mut self) {
         // ignore io errors
-        let _ = self.stdout.execute(cursor::Show);
+        let _ = self.stdout_lock.execute(cursor::Show);
         let _ = terminal::disable_raw_mode();
     }
 }
