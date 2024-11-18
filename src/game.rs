@@ -1,4 +1,7 @@
-use std::{collections::HashSet, time::Duration};
+use std::{
+    collections::{HashSet, VecDeque},
+    time::Duration,
+};
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
@@ -105,7 +108,7 @@ pub enum GameStatus {
 // renderer, so it doesn't need to reconstruct the board every frame.
 pub struct GameState {
     conf: GameConf,
-    snake: Vec<Coords>,
+    snake: VecDeque<Coords>,
     snake_dir: Dir,
     food: Vec<Food>,
     status: GameStatus,
@@ -151,31 +154,31 @@ impl GameState {
             self.snake_dir = dir;
         }
 
-        // remember where was the tail, to place here new element if needed
-        let old_tail = *self.snake.last().unwrap();
-
-        // advance every element of the snake, except for the head
-        for i in (1..self.snake.len()).rev() {
-            self.snake[i] = self.snake[i - 1];
-        }
-
-        if self.conf.solid_walls {
+        let new_head_pos = if self.conf.solid_walls {
             match self.snake[0].move_bumping(self.snake_dir, self.conf.width, self.conf.height) {
-                Some(new_head_pos) => self.snake[0] = new_head_pos,
-                None => self.status = GameStatus::Dead,
+                Some(new_head_pos) => new_head_pos,
+                None => {
+                    self.status = GameStatus::Dead;
+                    return;
+                }
             }
         } else {
-            self.snake[0] =
-                self.snake[0].move_wrapping(self.snake_dir, self.conf.width, self.conf.height);
-        }
+            self.snake[0].move_wrapping(self.snake_dir, self.conf.width, self.conf.height)
+        };
 
-        if self.snake[1..].contains(&self.snake[0]) {
+        // remember where was the tail, to place here new element if needed
+        let old_tail = self.snake.pop_back().unwrap();
+
+        if self.snake.contains(&new_head_pos) {
             self.status = GameStatus::Dead;
+            return;
         }
 
-        if let Some(i) = self.food.iter().position(|f| f.pos == self.snake[0]) {
+        self.snake.push_front(new_head_pos);
+
+        if let Some(i) = self.food.iter().position(|f| f.pos == new_head_pos) {
             self.food.remove(i);
-            self.snake.push(old_tail);
+            self.snake.push_back(old_tail);
 
             if let Some(new) = self.find_new_food_place() {
                 self.food.push(new);
@@ -251,8 +254,8 @@ impl GameState {
     pub fn status(&self) -> GameStatus {
         self.status
     }
-    pub fn snake(&self) -> &[Coords] {
-        self.snake.as_slice()
+    pub fn snake_iter(&self) -> impl Iterator<Item = Coords> + '_ {
+        self.snake.iter().copied()
     }
     pub fn food(&self) -> &[Food] {
         self.food.as_slice()

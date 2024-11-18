@@ -142,27 +142,29 @@ impl Renderer {
     ) -> Result<(), std::io::Error> {
         // === Setup the screen
 
-        let w = game.width();
-        let h = game.height();
-        let snake = game.snake();
-
         self.screen.fill(FieldCell::Empty);
 
-        // FIXME: switch to `slice::array_windows` once it's stable
-        // https://github.com/rust-lang/rust/issues/75027
-        for win in snake.windows(3) {
-            let [before, el, after] = win else {
-                unreachable!()
-            };
-            let dir1 = el.compare(before, w, h);
-            let dir2 = el.compare(after, w, h);
-            self.screen[[el.y, el.x]] = FieldCell::body_from(dir1, dir2);
+        let w = game.width();
+        let h = game.height();
+        let mut snake = game.snake_iter();
+        let head = snake.next().unwrap();
+
+        self.screen[[head.y, head.x]] = FieldCell::head_from(game.snake_dir());
+
+        let mut prev = head;
+        let mut curr = snake.next();
+        let mut next = snake.next();
+
+        while let (Some(some_curr), Some(some_next)) = (curr, next) {
+            let dir1 = some_curr.compare(&prev, w, h);
+            let dir2 = some_curr.compare(&some_next, w, h);
+            self.screen[[some_curr.y, some_curr.x]] = FieldCell::body_from(dir1, dir2);
+
+            (prev, curr, next) = (some_curr, next, snake.next());
         }
 
-        self.screen[[snake[0].y, snake[0].x]] = FieldCell::head_from(game.snake_dir());
-
-        if let [.., before_tail, tail] = snake {
-            self.screen[[tail.y, tail.x]] = FieldCell::tail_from(tail.compare(before_tail, w, h));
+        if let Some(tail) = curr {
+            self.screen[[tail.y, tail.x]] = FieldCell::tail_from(tail.compare(&prev, w, h));
         }
 
         for food in game.food() {
